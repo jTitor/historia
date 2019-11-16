@@ -1,6 +1,6 @@
 # Specialize ignore for Rust files:
 # Compiled binaries...
-/target/
+**/target/*
 
 # Since this is meant to be a library, the project's Cargo.lock is not ignored.
 # C.f.: https://doc.rust-lang.org/cargo/guide/cargo-toml-vs-cargo-lock.html
