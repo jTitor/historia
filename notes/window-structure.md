@@ -8,6 +8,8 @@
                 * The editor view is a single unsplit view listing the note contents as text nodes. Should contain:
                     * On the top, a toolbar for text node options. Can be hidden.
                     * On the bottom filling available, the text editor. You'll need some way to separate sections, since they'll each use a different renderer.
+                        * **Since we have no idea what we're doing, this will just be a form's textarea until otherwise noted.**
+                        * **This view must either lock the file or update if the file is changed on disk!**
             * Edit with Preview
                 * The editor view is split in half. The left half is the normal edit-only view, the right half is a render of the note.
 * You should switch between workspaces with an "Open" command.
