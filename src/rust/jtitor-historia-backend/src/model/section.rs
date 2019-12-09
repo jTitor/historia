@@ -7,6 +7,17 @@
  * format.
  */
 pub struct Section {
+    content: String,
+    format: SectionFormat,
     //TODO: Should this have metadata like a
     //section title?
+}
+
+pub enum SectionFormat {
+    ///Plain Unicode text.
+    RawText,
+    ///Markdown text data.
+    Markdown,
+    ///LaTeX text data.
+    Latex,
 }
