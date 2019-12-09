@@ -1,6 +1,8 @@
 /*!
  * Defines the Note type.
 */
+use serde::{Serialize, Deserialize};
+
 use crate::model::Section;
 
 /**
@@ -9,11 +11,13 @@ use crate::model::Section;
  * as well as search metadata such as a title
  * and tags.
  */
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Note {
     sections: Vec<Section>,
     metadata: NoteMetadata,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
 pub struct NoteMetadata {
     name: String,
     //TODO: Most likely this will need to

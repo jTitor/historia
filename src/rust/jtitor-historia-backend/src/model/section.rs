@@ -1,11 +1,13 @@
 /*!
  * Defines the Section type.
  */
+use serde::{Serialize, Deserialize};
 
 /**
  * Represents a region of notes with a consistent
  * format.
  */
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Section {
     content: String,
     format: SectionFormat,
@@ -13,6 +15,7 @@ pub struct Section {
     //section title?
 }
 
+#[derive(Serialize, Deserialize, Debug)]
 pub enum SectionFormat {
     ///Plain Unicode text.
     RawText,
