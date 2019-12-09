@@ -14,4 +14,5 @@ pub struct Notebook {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NotebookMetadata {
     name: String,
+    //TODO: version number?
 }

@@ -2,7 +2,6 @@
  * Contains modules relating to the app's
  * in-memory data model.
  */
-
 mod workspace;
 pub use workspace::*;
 
