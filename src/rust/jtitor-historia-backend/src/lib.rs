@@ -1,3 +1,6 @@
+mod io;
+mod model;
+
 #[cfg(test)]
 mod tests {
     #[test]

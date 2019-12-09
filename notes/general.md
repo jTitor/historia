@@ -18,6 +18,18 @@
                     * Key "data": The data contained by the cell. Usually text, but for an image it'd probably have to either be a relative link or the actual content byte64'd or something.
                     * Key "language": If type == "code", this is the language the cell's using to highlight data.
     * The following "general remarks" section has a bunch of useful information that's not redundant to this section. **In particular, it mentions some security issues to consider**, so look at the section.
+* Note Structure
+    * A single window has a single **workspace** loaded.
+        * A workspace has zero or more **notebooks**.
+            * A notebook has zero or more **notes**.
+                * A note is composed of zero or more **sections**, which each have a representation format, content, and index order in the note.
+* Note Navigation
+    * Generally workspaces are switched by using the Open command.
+        * Notebooks are switched by clicking on the notebook in the window's notebook list.
+            * Notes are switched by clicking on the note in the window's note list.
+                * Section navigation is unclear, but most likely they're switched by clicking on the section in a section list.
+    * Questions
+        * When should a new window be opened? An "Open in New Window" makes sense, but should "Open" itself open in a new window under any circumstances?
 * General remarks on possible file format.
     * Individual Notes
         * Format
