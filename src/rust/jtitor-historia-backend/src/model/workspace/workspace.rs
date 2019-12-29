@@ -8,6 +8,7 @@ use failure::Error;
 use serde::{Deserialize, Serialize};
 
 use super::{WorkspaceFile, WorkspaceMetadata};
+use crate::error::ConversionError;
 use crate::io::{Export, Import};
 use crate::model::Notebook;
 
@@ -40,6 +41,8 @@ impl Import<Workspace> for Workspace {
         }
 
         //Return the opened Notebooks and loaded WorkspaceMetadata.
+        //TODO: this needs to return both the Workspace and its
+        //warnings. Maybe move to a separate WorkspaceImportResult type?
         Ok(Workspace {
             notebooks: notebooks,
             metadata: workspace_file.metadata,
@@ -61,6 +64,15 @@ impl Export for Workspace {
             //  * Add the path to a list of successfully-written paths.
             //  * If any of the prior steps failed:
             //      * Add the path to a list of failed paths and continue.
+
+            //TODO:
+            //This indicates that we actually need a way to rollback changes;
+            //if a write fails, we need to rollback all of the writes.
+            //The simplest way is probably to move the original content to a temp,
+            //save the new content in place, then delete the temps
+            //when all writes are done.
+            //Then, if a write fails, we can move the temps back to the original paths
+            //and abort.
             unimplemented!();
         }
 

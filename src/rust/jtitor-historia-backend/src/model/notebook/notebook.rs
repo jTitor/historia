@@ -8,6 +8,7 @@ use failure::Error;
 use serde::{Deserialize, Serialize};
 
 use super::{NotebookFile, NotebookMetadata};
+use crate::error::ConversionError;
 use crate::io::{Export, Import};
 use crate::model::Note;
 
@@ -17,12 +18,45 @@ pub struct Notebook {
     metadata: NotebookMetadata,
 }
 
+impl Notebook {
+    /**
+     * Writes this notebook's notes to disk,
+     * rolling back all changes if any note fails to write.
+     */
+    fn write_notes_or_rollback(&self) -> Result<Vec<String>, Error> {
+        let mut note_paths_written: Vec<String> = vec![];
+
+        for note in self.notes.iter() {
+            //The notes are a little harder. For each note:
+            //  * Determine its file path.
+            //  * Open the note's file path.
+            //  * Call Note.export(), using the newly opened file as destination.
+            //  * Add the path to a list of successfully-written paths.
+            //  * If any of the prior steps failed:
+            //      * Add the path to a list of failed paths and continue.
+
+            //TODO:
+            //This indicates that we actually need a way to rollback changes;
+            //if a write fails, we need to rollback all of the writes.
+            //The simplest way is probably to move the original content to a temp,
+            //save the new content in place, then delete the temps
+            //when all writes are done.
+            //Then, if a write fails, we can move the temps back to the original paths
+            //and abort.
+            unimplemented!();
+        }
+
+        Ok(note_paths_written)
+    }
+}
+
 impl Import<Notebook> for Notebook {
     fn import(&self, source: &mut File) -> Result<Notebook, Error> {
         //First, try to deserialize a NotebookFile from 'source'.
         let notebook_file = NotebookFile::from_file(source)?;
 
         let mut notes: Vec<Note> = vec![];
+        let mut note_errors: Vec<ConversionError> = vec![];
         //For each path in the NotebookFile's path list:
         for path in notebook_file.note_paths {
             //  * Try to open the specified file.
@@ -36,6 +70,8 @@ impl Import<Notebook> for Notebook {
         }
 
         //Return the opened Notes and loaded NotebookMetadata.
+        //TODO: this needs to return both the Notebook and its
+        //warnings. Maybe move to a separate NotebookImportResult type?
         Ok(Notebook {
             notes: notes,
             metadata: notebook_file.metadata,
@@ -47,18 +83,18 @@ impl Export for Notebook {
     fn export(&self, destination: &mut File) -> Result<(), Error> {
         //The metadata can be directly serialized.
         let metadata = self.metadata.clone();
-
-        let mut note_paths: Vec<String> = vec![];
-        for note in self.notes.iter() {
-            //The notes are a little harder. For each note:
-            //  * Determine its file path.
-            //  * Open the note's file path.
-            //  * Call Note.export(), using the newly opened file as destination.
-            //  * Add the path to a list of successfully-written paths.
-            //  * If any of the prior steps failed:
-            //      * Add the path to a list of failed paths and continue.
-            unimplemented!();
-        }
+        
+        //TODO: Instead of immediately writing to destination files,
+        //may want to return a list of changes to be committed
+        //(presumably they're waiting on temp files),
+        //then have a separate operation commit the changes.
+        //The commit operation can then ensure safety like this:
+        //  * Move on-disk file to temp
+        //  * Try to move uncommitted file to on-disk path
+        //      * If this move fails, move on-disk file back and report failure
+        //          * At which point the caller can rollback all committed files
+        //  * Delete all remaining temp files
+        let note_paths = self.write_notes_or_rollback()?;
         
         //Write the output to the destination file.
         let output = NotebookFile {
@@ -67,6 +103,8 @@ impl Export for Notebook {
         };
 
         let file_writer = BufWriter::new(destination);
+        //TODO: We also need to handle this.
+        //If this can't be written, we need to rollback all changes.
         serde_json::to_writer(file_writer, output)
     }
 }
