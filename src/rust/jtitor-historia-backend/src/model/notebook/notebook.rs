@@ -35,14 +35,9 @@ impl Notebook {
             //  * If any of the prior steps failed:
             //      * Add the path to a list of failed paths and continue.
 
-            //TODO:
-            //This indicates that we actually need a way to rollback changes;
-            //if a write fails, we need to rollback all of the writes.
-            //The simplest way is probably to move the original content to a temp,
-            //save the new content in place, then delete the temps
-            //when all writes are done.
-            //Then, if a write fails, we can move the temps back to the original paths
-            //and abort.
+            //TODO: Instead of immediately writing to destination files,
+            //may want to generate changes here and then perform
+            //a rollback-able commit. See notes/writing-fs-changes.md.
             unimplemented!();
         }
 
@@ -83,19 +78,10 @@ impl Export for Notebook {
     fn export(&self, destination: &mut File) -> Result<(), Error> {
         //The metadata can be directly serialized.
         let metadata = self.metadata.clone();
-        
         //TODO: Instead of immediately writing to destination files,
-        //may want to return a list of changes to be committed
-        //(presumably they're waiting on temp files),
-        //then have a separate operation commit the changes.
-        //The commit operation can then ensure safety like this:
-        //  * Move on-disk file to temp
-        //  * Try to move uncommitted file to on-disk path
-        //      * If this move fails, move on-disk file back and report failure
-        //          * At which point the caller can rollback all committed files
-        //  * Delete all remaining temp files
+        //may want to generate changes here and then perform
+        //a rollback-able commit. See notes/writing-fs-changes.md.
         let note_paths = self.write_notes_or_rollback()?;
-        
         //Write the output to the destination file.
         let output = NotebookFile {
             note_paths: note_paths,
