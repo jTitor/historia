@@ -15,7 +15,10 @@ pub struct Section {
     //section title?
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+/**
+ * TODO
+ */
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum SectionFormat {
     ///Plain Unicode text.
     RawText,

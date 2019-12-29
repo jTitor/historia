@@ -6,8 +6,8 @@ use serde::{Serialize, Deserialize};
 /**
  * TODO
  */
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct WorkspaceMetadata {
-    name: String,
+    pub name: String,
     //TODO: version number?
 }

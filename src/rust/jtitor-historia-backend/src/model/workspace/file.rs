@@ -1,6 +1,9 @@
 /*!
  * Defines the WorkspaceFile type.
  */
+use std::fs::File;
+
+use failure::Error;
 use serde::{Serialize, Deserialize};
 
 use super::WorkspaceMetadata;
@@ -10,6 +13,13 @@ use super::WorkspaceMetadata;
  */
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WorkspaceFile {
-    notebook_paths: Vec<String>,
-    metadata: WorkspaceMetadata,
+    pub notebook_paths: Vec<String>,
+    pub metadata: WorkspaceMetadata,
+}
+
+impl WorkspaceFile {
+    pub fn from_file(file: &File) -> Result<WorkspaceFile, Error> {
+        //Should be deserializable from the given file.
+        unimplemented!()
+    }
 }

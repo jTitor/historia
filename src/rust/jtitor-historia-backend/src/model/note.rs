@@ -25,7 +25,7 @@ pub struct Note {
 /**
  * TODO
  */
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct NoteMetadata {
     name: String,
     //TODO: Most likely this will need to
