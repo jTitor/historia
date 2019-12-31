@@ -3,7 +3,7 @@
  */
 use std::fs::File;
 
-use failure::Error;
+use crate::error::ConversionError;
 
 /**
  * Trait for types that can be imported from disk.
@@ -12,5 +12,5 @@ use failure::Error;
  * in-memory type from an arbitrary File.
  */
 pub trait Import<T> {
-    fn import(&self, source: &mut File) -> Result<T, Error>;
+    fn import(&self, source: &mut File) -> Result<T, ConversionError>;
 }

@@ -19,6 +19,11 @@ pub enum ConversionError {
     #[fail(display = "instance couldn't be created: {}", cause)]
     ConstructionFailed { cause: Error },
     /**
+     * A file couldn't be written to.
+     */
+    #[fail(display = "file couldn't be written: {}", reason)]
+    SerializationFailed { reason: String },
+    /**
      * Multiple errors occured.
      */
     #[fail(display = "multiple conversion errors: {:?}", errors)]

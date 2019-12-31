@@ -4,11 +4,11 @@
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 
-use failure::Error;
 use serde::{Serialize, Deserialize};
 
+use crate::error::ConversionError;
 use crate::model::Section;
-use crate::io::{Export, Import};
+use crate::io::{helpers, Export, Import};
 
 /**
  * Represents a single note.
@@ -34,23 +34,19 @@ pub struct NoteMetadata {
 }
 
 impl Import<Note> for Note {
-    fn import(&self, source: &mut File) -> Result<Note, Error> {
+    fn import(&self, source: &mut File) -> Result<Note, ConversionError> {
         //Very simple: just deserialize from 'source'.
         let file_reader = BufReader::new(source);
         
-        let read_result: serde_json::Result<Note> = serde_json::from_reader(file_reader);
-
-        Ok(read_result?)
+        helpers::read_json(file_reader)
     }
 }
 
 impl Export for Note {
-    fn export(&self, destination: &mut File) -> Result<(), Error> {
+    fn export(&self, destination: &mut File) -> Result<(), ConversionError> {
         //Very simple: just serialize to 'destination'.
         let file_writer = BufWriter::new(destination);
         
-        let _serde_writer_result = serde_json::to_writer(file_writer, self)?;
-
-        Ok(())
+        helpers::write_json(file_writer, self)
     }
 }

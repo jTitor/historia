@@ -3,7 +3,7 @@
  */
 use std::fs::File;
 
-use failure::Error;
+use crate::error::ConversionError;
 
 /**
  * Trait for types that can be exported to disk.
@@ -11,5 +11,5 @@ use failure::Error;
  * Types implementing Export specify a method for writing to an arbitrary File.
  */
 pub trait Export {
-    fn export(&self, destination: &mut File) -> Result<(), Error>;
+    fn export(&self, destination: &mut File) -> Result<(), ConversionError>;
 }

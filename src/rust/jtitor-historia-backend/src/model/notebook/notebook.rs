@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{NotebookFile, NotebookMetadata};
 use crate::error::ConversionError;
-use crate::io::{Export, Import};
+use crate::io::{helpers, Export, Import};
 use crate::model::Note;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -46,9 +46,9 @@ impl Notebook {
 }
 
 impl Import<Notebook> for Notebook {
-    fn import(&self, source: &mut File) -> Result<Notebook, Error> {
+    fn import(&self, source: &mut File) -> Result<Notebook, ConversionError> {
         //First, try to deserialize a NotebookFile from 'source'.
-        let notebook_file = NotebookFile::from_file(source)?;
+        let notebook_file = helpers::open_notebook_file(source)?;
 
         let mut notes: Vec<Note> = vec![];
         let mut note_errors: Vec<ConversionError> = vec![];
@@ -75,9 +75,10 @@ impl Import<Notebook> for Notebook {
 }
 
 impl Export for Notebook {
-    fn export(&self, destination: &mut File) -> Result<(), Error> {
+    fn export(&self, destination: &mut File) -> Result<(), ConversionError> {
         //The metadata can be directly serialized.
         let metadata = self.metadata.clone();
+        
         //TODO: Instead of immediately writing to destination files,
         //may want to generate changes here and then perform
         //a rollback-able commit. See notes/writing-fs-changes.md.
@@ -91,6 +92,6 @@ impl Export for Notebook {
         let file_writer = BufWriter::new(destination);
         //TODO: We also need to handle this.
         //If this can't be written, we need to rollback all changes.
-        serde_json::to_writer(file_writer, output)
+        helpers::write_json(file_writer, &output)
     }
 }

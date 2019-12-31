@@ -4,12 +4,11 @@
 use std::fs::File;
 use std::io::BufWriter;
 
-use failure::Error;
 use serde::{Deserialize, Serialize};
 
 use super::{WorkspaceFile, WorkspaceMetadata};
 use crate::error::ConversionError;
-use crate::io::{Export, Import};
+use crate::io::{helpers, Export, Import};
 use crate::model::Notebook;
 
 /**
@@ -22,9 +21,9 @@ pub struct Workspace {
 }
 
 impl Import<Workspace> for Workspace {
-    fn import(&self, source: &mut File) -> Result<Workspace, Error> {
+    fn import(&self, source: &mut File) -> Result<Workspace, ConversionError> {
         //First, try to deserialize a WorkspaceFile from 'source'.
-        let workspace_file = WorkspaceFile::from_file(source)?;
+        let workspace_file = helpers::open_workspace_file(source)?;
 
         let mut notebooks: Vec<Notebook> = vec![];
         //For each path in the WorkspaceFile's path list:
@@ -51,7 +50,7 @@ impl Import<Workspace> for Workspace {
 }
 
 impl Export for Workspace {
-    fn export(&self, destination: &mut File) -> Result<(), Error> {
+    fn export(&self, destination: &mut File) -> Result<(), ConversionError> {
         //The metadata can be directly serialized.
         let metadata = self.metadata.clone();
 
@@ -83,6 +82,6 @@ impl Export for Workspace {
         };
 
         let file_writer = BufWriter::new(destination);
-        serde_json::to_writer(file_writer, output)
+        helpers::write_json(file_writer, &output)
     }
 }
