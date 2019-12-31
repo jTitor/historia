@@ -12,5 +12,5 @@ use crate::error::ConversionError;
  * in-memory type from an arbitrary File.
  */
 pub trait Import<T> {
-    fn import(&self, source: &mut File) -> Result<T, ConversionError>;
+    fn import(&self, source: &File) -> Result<T, ConversionError>;
 }

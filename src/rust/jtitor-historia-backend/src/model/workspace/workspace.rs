@@ -4,28 +4,27 @@
 use std::fs::File;
 use std::io::BufWriter;
 
-use serde::{Deserialize, Serialize};
-
 use super::{WorkspaceFile, WorkspaceMetadata};
 use crate::error::ConversionError;
 use crate::io::{helpers, Export, Import};
-use crate::model::Notebook;
+use crate::model::{Notebook, WorkspaceNode};
 
 /**
  * Contains one or more Notebook instances.
  */
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct Workspace {
-    notebooks: Vec<Notebook>,
+    notebooks: Vec<WorkspaceNode<Notebook, Workspace>>,
     metadata: WorkspaceMetadata,
 }
 
 impl Import<Workspace> for Workspace {
-    fn import(&self, source: &mut File) -> Result<Workspace, ConversionError> {
+    fn import(&self, source: &File) -> Result<Workspace, ConversionError> {
         //First, try to deserialize a WorkspaceFile from 'source'.
         let workspace_file = helpers::open_workspace_file(source)?;
 
-        let mut notebooks: Vec<Notebook> = vec![];
+        let mut notebooks: Vec<WorkspaceNode<Notebook, Workspace>> = vec![];
+        let mut note_errors: Vec<ConversionError> = vec![];
         //For each path in the WorkspaceFile's path list:
         for path in workspace_file.notebook_paths {
             //  * Try to open the specified file.
@@ -55,7 +54,7 @@ impl Export for Workspace {
         let metadata = self.metadata.clone();
 
         let mut notebook_paths: Vec<String> = vec![];
-        for notebook in self.notebooks.iter() {
+        for notebook_node in self.notebooks.iter() {
             //The notebooks are a little harder. For each notebook:
             //  * Determine its file path.
             //  * Open the notebook's file path.
@@ -85,3 +84,5 @@ impl Export for Workspace {
         helpers::write_json(file_writer, &output)
     }
 }
+
+pub type WorkspaceNodeElem = WorkspaceNode<Workspace, Workspace>;

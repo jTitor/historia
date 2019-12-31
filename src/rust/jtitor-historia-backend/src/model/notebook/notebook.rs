@@ -5,16 +5,15 @@ use std::fs::File;
 use std::io::BufWriter;
 
 use failure::Error;
-use serde::{Deserialize, Serialize};
 
 use super::{NotebookFile, NotebookMetadata};
 use crate::error::ConversionError;
 use crate::io::{helpers, Export, Import};
-use crate::model::Note;
+use crate::model::{Note, WorkspaceNode, Workspace};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct Notebook {
-    notes: Vec<Note>,
+    notes: Vec<WorkspaceNode<Note, Notebook>>,
     metadata: NotebookMetadata,
 }
 
@@ -26,7 +25,7 @@ impl Notebook {
     fn write_notes_or_rollback(&self) -> Result<Vec<String>, Error> {
         let mut note_paths_written: Vec<String> = vec![];
 
-        for note in self.notes.iter() {
+        for note_node in self.notes.iter() {
             //The notes are a little harder. For each note:
             //  * Determine its file path.
             //  * Open the note's file path.
@@ -46,11 +45,11 @@ impl Notebook {
 }
 
 impl Import<Notebook> for Notebook {
-    fn import(&self, source: &mut File) -> Result<Notebook, ConversionError> {
+    fn import(&self, source: &File) -> Result<Notebook, ConversionError> {
         //First, try to deserialize a NotebookFile from 'source'.
         let notebook_file = helpers::open_notebook_file(source)?;
 
-        let mut notes: Vec<Note> = vec![];
+        let mut notes: Vec<WorkspaceNode<Note, Notebook>> = vec![];
         let mut note_errors: Vec<ConversionError> = vec![];
         //For each path in the NotebookFile's path list:
         for path in notebook_file.note_paths {
@@ -95,3 +94,5 @@ impl Export for Notebook {
         helpers::write_json(file_writer, &output)
     }
 }
+
+pub type NotebookNode = WorkspaceNode<Notebook, WorkspaceNodeElem>;
