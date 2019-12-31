@@ -1,51 +1,69 @@
 /*!
  * Defines the Workspace type.
  */
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::BufWriter;
-
-use serde::{Deserialize, Serialize};
+use std::path::{Path, PathBuf};
+use std::rc::Rc;
 
 use super::{WorkspaceFile, WorkspaceMetadata};
 use crate::error::ConversionError;
-use crate::io::{helpers, Export, Import};
-use crate::model::Notebook;
+use crate::io::{helpers, Export};
+use crate::model::{new_workspace_node, Notebook, WorkspaceNode};
 
 /**
  * Contains one or more Notebook instances.
  */
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct Workspace {
-    notebooks: Vec<Notebook>,
+    notebooks: Vec<WorkspaceNode<Notebook>>,
     metadata: WorkspaceMetadata,
 }
 
-impl Import<Workspace> for Workspace {
-    fn import(&self, source: &mut File) -> Result<Workspace, ConversionError> {
+impl Workspace {
+    fn import<P: AsRef<Path>>(path: P) -> Result<WorkspaceNode<Workspace>, ConversionError> {
+        let path_string: String = path.as_ref().to_string_lossy().to_owned().into();
+        let source = helpers::open_file_for_read(path)?;
         //First, try to deserialize a WorkspaceFile from 'source'.
-        let workspace_file = helpers::open_workspace_file(source)?;
+        let workspace_file = helpers::open_workspace_file(&source)?;
+        let path_buf = PathBuf::from(path_string);
 
-        let mut notebooks: Vec<Notebook> = vec![];
+        //The workspace must be initialized here first,
+        //since we can't set the parent field
+        //for its notebooks until the workspace itself exists.
+        let mut workspace = Workspace {
+            notebooks: vec![],
+            metadata: workspace_file.metadata,
+        };
+        let workspace_node = new_workspace_node(workspace);
+
+        let mut notebooks: Vec<WorkspaceNode<Notebook>> = vec![];
+        let mut notebook_errors: Vec<ConversionError> = vec![];
         //For each path in the WorkspaceFile's path list:
         for path in workspace_file.notebook_paths {
+            let mut converted_path: PathBuf = path_buf.clone();
+            converted_path.push(path);
+
             //  * Try to open the specified file.
-            //      * If the file failed, mark it as a failed file and continue.
-            //          * TODO: We need some way to deal with failed notebooks.
-            //          * TODO: We should get the reason a file failed; as seen below,
-            //          a file can open but fail to import.
-            //      * Else, try to import the opened file as a Notebook.
-            //          * If the import failed, mark it as a failed file and continue.
-            //      * Add the new Notebook to a list of opened Notebooks.
-            unimplemented!();
+            match Notebook::import(converted_path, Rc::downgrade(&workspace_node)) {
+                //      * If the file failed, mark it as a failed file and continue.
+                //          * TODO: We need some way to deal with failed notebooks.
+                //          * TODO: We should get the reason a file failed; as seen below,
+                //          a file can open but fail to import.
+                Err(error) => notebook_errors.push(error),
+                //      * Else, try to import the opened file as a Notebook.
+                //          * If the import failed, mark it as a failed file and continue.
+                //      * Add the new Notebook to a list of opened Notebooks.
+                Ok(opened_notebook) => notebooks.push(opened_notebook),
+            }
         }
+
+        workspace_node.borrow_mut().notebooks = notebooks;
 
         //Return the opened Notebooks and loaded WorkspaceMetadata.
         //TODO: this needs to return both the Workspace and its
         //warnings. Maybe move to a separate WorkspaceImportResult type?
-        Ok(Workspace {
-            notebooks: notebooks,
-            metadata: workspace_file.metadata,
-        })
+        Ok(workspace_node)
     }
 }
 

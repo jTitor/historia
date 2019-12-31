@@ -1,8 +1,9 @@
 /*!
  * Defines helper methods for file I/O.
  */
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::{Read, Write};
+use std::path::{Path, PathBuf};
 
 use failure::Error;
 use serde::{de::DeserializeOwned, Serialize};
@@ -27,6 +28,15 @@ fn open_from_file<T>(
 }
 
 //Import helper functions
+pub fn open_file_for_read<P: AsRef<Path>>(path: P) -> Result<File, ConversionError> {
+    let path_string: String = path.as_ref().to_string_lossy().to_owned().into();
+
+    match fs::OpenOptions::new().read(true).open(path) {
+        Ok(file) => Ok(file),
+        Err(_) => Err(ConversionError::FileOpenFailed { path: path_string }),
+    }
+}
+
 pub fn open_workspace_file(file: &File) -> Result<WorkspaceFile, ConversionError> {
     open_from_file(file, WorkspaceFile::from_file)
 }

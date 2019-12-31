@@ -28,16 +28,17 @@ pub struct FsChange<'a> {
     _rollback_path: PathBuf,
 }
 
-const k_new_file_prefix: String = "~new~".into();
-const k_rollback_file_prefix: String = "~old~".into();
+const k_new_file_prefix: &'static str = "~new~";
+const k_rollback_file_prefix: &'static str = "~old~";
 
 fn add_prefix_to_path(path: &PathBuf, prefix: String) -> PathBuf {
     let file_name = path.file_name().unwrap_or(std::ffi::OsStr::new("")).to_str().unwrap_or("");
     let new_file_name = format!("{}{}", prefix, file_name);
 
-    let new_path = path.with_file_name(new_file_name).to_str().unwrap_or("");
+    let new_path = path.with_file_name(new_file_name);
+    let unwrapped_new_path: PathBuf = new_path.to_str().unwrap_or("").into();
 
-    new_path.into()
+    unwrapped_new_path
 }
 
 impl<'a> FsChange<'a> {
@@ -59,18 +60,21 @@ impl<'a> FsChange<'a> {
     }
 
     pub fn new(path: PathBuf, data: &'a dyn Export) -> FsChange<'a> {
+        let new_path = add_prefix_to_path(&path, k_new_file_prefix.into());
+        let rollback_path = add_prefix_to_path(&path, k_rollback_file_prefix.into());
+
         FsChange {
             _path: path,
             _data: data,
             _write_state: FsChangeState::NotWritten,
-            _new_path: add_prefix_to_path(&path, k_new_file_prefix),
-            _rollback_path: add_prefix_to_path(&path, k_rollback_file_prefix),
+            _new_path: new_path,
+            _rollback_path: rollback_path,
         }
     }
 
     //Methods.
     pub fn delete_rollback_file(&mut self) -> Result<(), Error> {
-        match fs::remove_file(self._rollback_path) {
+        match fs::remove_file(self._rollback_path.clone()) {
             Ok(_) => Ok(()),
             Err(error) => Err(Error::from(error))
         }
@@ -143,7 +147,7 @@ impl<'a> FsChange<'a> {
     }
 
     fn write_new_file(&self) -> Result<(), Error> {
-        let file = fs::File::create(self._new_path)?;
+        let file = fs::File::create(self._new_path.clone())?;
 
         self.write_data(&file)
     }
@@ -156,7 +160,7 @@ impl<'a> FsChange<'a> {
     }
 
     fn delete_new_file(&self) {
-        let _ = fs::remove_file(self._new_path);
+        let _ = fs::remove_file(self._new_path.clone());
     }
 
     fn move_target_file_to_rollback_path(&self) -> Result<(), Error> {

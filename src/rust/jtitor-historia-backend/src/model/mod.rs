@@ -13,3 +13,6 @@ pub use note::*;
 
 mod section;
 pub use section::*;
+
+mod workspace_node;
+pub use workspace_node::*;

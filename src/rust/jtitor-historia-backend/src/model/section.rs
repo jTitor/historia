@@ -7,7 +7,7 @@ use serde::{Serialize, Deserialize};
  * Represents a region of notes with a consistent
  * format.
  */
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Section {
     content: String,
     format: SectionFormat,
