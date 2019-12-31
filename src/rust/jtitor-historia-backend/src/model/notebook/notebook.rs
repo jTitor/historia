@@ -75,7 +75,7 @@ impl Import<Notebook> for Notebook {
 }
 
 impl Export for Notebook {
-    fn export(&self, destination: &mut File) -> Result<(), ConversionError> {
+    fn export(&self, destination: &File) -> Result<(), ConversionError> {
         //The metadata can be directly serialized.
         let metadata = self.metadata.clone();
         

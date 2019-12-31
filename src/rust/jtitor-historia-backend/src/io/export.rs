@@ -11,5 +11,5 @@ use crate::error::ConversionError;
  * Types implementing Export specify a method for writing to an arbitrary File.
  */
 pub trait Export {
-    fn export(&self, destination: &mut File) -> Result<(), ConversionError>;
+    fn export(&self, destination: &File) -> Result<(), ConversionError>;
 }
